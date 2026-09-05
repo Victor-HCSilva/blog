@@ -1,0 +1,459 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-br" class="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Django Blog{% endblock title %}</title>
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/?size=100&id=80355&format=png&color=000000" />
+
+    <!-- Ícones FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" />
+
+    <!-- Twind Setup for Tailwind CSS in JS -->
+    <script src="https://cdn.twind.style"></script>
+    <script>
+      twind.install({
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              gray: twind.colors.trueGray,
+            }
+          }
+        }
+      });
+    </script>
+
+    <!-- CSS customizado -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}" />
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        @media screen and (min-width: 768px) {
+            .sidebar-column,
+            .main-content-column {
+                height: 100vh;
+                overflow-y: auto;
+                transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
+            }
+            html, body { overflow: hidden; }
+
+            .sidebar-column.sidebar-collapsed {
+                width: 0 !important;
+                padding: 0 !important;
+                overflow: hidden !important;
+            }
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: #9ca3af;
+            transition: background-color 0.15s, color 0.15s;
+            text-decoration: none;
+        }
+        .nav-link:hover { color: #f3f4f6; background-color: rgba(255,255,255,0.08); }
+        .nav-link.active { color: #ffffff; background-color: #3b82f6; }
+        .nav-link .nav-icon { width: 18px; text-align: center; font-size: 0.875rem; }
+
+        #mobileMenu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            background-color: #0f172a;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        #mobileMenu.is-open { display: block; }
+
+        /* Estilização padrão de formulários para compatibilidade */
+        input.input, textarea.textarea, textarea.input,
+        input:not([type=submit]):not([type=button]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]):not([type=range]),
+        select,
+        textarea {
+            background-color: #1f2937 !important;
+            color: #e5e7eb !important;
+            border: 1px solid #374151 !important;
+            border-radius: 0.5rem !important;
+            padding: 0.625rem 0.875rem !important;
+            width: 100%;
+            font-size: 0.9rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        input.input:focus, textarea.textarea:focus, textarea.input:focus,
+        input:not([type=submit]):not([type=button]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([type=file]):not([type=color]):not([type=range]):focus,
+        select:focus,
+        textarea:focus {
+            outline: none !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #9ca3af !important;
+            opacity: 1 !important;
+        }
+
+        select option {
+            background-color: #1f2937;
+            color: #e5e7eb;
+        }
+    </style>
+    {% block extra_css %}{% endblock extra_css %}
+</head>
+
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+    {% block body_wrapper %}
+
+    <!-- ======================================================= -->
+    <!-- MENU MOBILE                                             -->
+    <!-- ======================================================= -->
+    <nav class="md:hidden relative bg-[#0f172a] text-white flex items-center justify-between px-4 py-3 shadow-lg z-50" role="navigation" aria-label="mobile navigation">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'main:home' %}" class="font-bold text-lg text-white flex items-center gap-2">
+                <i class="fas fa-pen-nib text-indigo-400"></i>
+                <span>Blog Moderno</span>
+            </a>
+        </div>
+
+        <button
+            class="text-white hover:text-indigo-400 focus:outline-none transition-colors w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/10"
+            aria-label="Abrir menu"
+            id="mobile-menu-btn"
+        >
+            <i class="fas fa-bars fa-lg" id="hamburger-icon"></i>
+        </button>
+
+        <!-- Menu dropdown mobile -->
+        <div id="mobileMenu">
+            <div class="px-4 py-3 space-y-1">
+                {% if user.is_authenticated %}
+                <div class="px-3 py-2 mb-2 border-b border-white/10">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Usuário</p>
+                    <p class="text-sm text-gray-300 mt-1">Conectado como <strong class="text-white">{{ user.username }}</strong></p>
+                </div>
+
+                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider px-3 pt-2 pb-1">Navegação</p>
+                <a class="nav-link" href="{% url 'main:home' %}">
+                    <span class="nav-icon"><i class="fas fa-newspaper"></i></span>
+                    <span>Feed / Início</span>
+                </a>
+                <a class="nav-link" href="{% url 'main:post_create' %}">
+                    <span class="nav-icon"><i class="fas fa-feather-alt text-indigo-400"></i></span>
+                    <span class="text-indigo-300 font-medium">Novo Post</span>
+                </a>
+                <a class="nav-link" href="{% url 'main:user_posts' %}">
+                    <span class="nav-icon"><i class="fas fa-layer-group"></i></span>
+                    <span>Meus Posts</span>
+                </a>
+                <a class="nav-link" href="{% url 'main:sobre' %}">
+                    <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
+                    <span>Sobre</span>
+                </a>
+                {% if user.is_staff or user.is_superuser %}
+                <a class="nav-link text-amber-300 hover:text-amber-200" href="{% url 'admin_panel:dashboard' %}">
+                    <span class="nav-icon"><i class="fas fa-shield-alt text-amber-400"></i></span>
+                    <span class="text-amber-300 font-medium">Painel Admin</span>
+                </a>
+                {% endif %}
+
+                <div class="pt-3 pb-1">
+                    <form method="post" action="{% url 'main:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-red-900/40 hover:bg-red-900/60 text-red-400 hover:text-red-200 transition-colors text-sm">
+                            <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+                            <span>Sair</span>
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <a class="nav-link" href="{% url 'main:home' %}">
+                    <span class="nav-icon"><i class="fas fa-newspaper"></i></span>
+                    <span>Feed / Início</span>
+                </a>
+                <a class="nav-link" href="{% url 'main:sobre' %}">
+                    <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
+                    <span>Sobre</span>
+                </a>
+                <a class="nav-link" href="{% url 'main:login' %}">
+                    <span class="nav-icon"><i class="fas fa-sign-in-alt"></i></span>
+                    <span>Entrar</span>
+                </a>
+                <a class="nav-link" href="{% url 'main:create_account' %}">
+                    <span class="nav-icon"><i class="fas fa-user-plus"></i></span>
+                    <span>Criar Conta</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- ======================================================= -->
+    <!-- LAYOUT PRINCIPAL (Sidebar + Conteúdo)                   -->
+    <!-- ======================================================= -->
+    <div class="flex md:flex-nowrap flex-nowrap" style="height: calc(100vh - 0px);">
+
+        <!-- SIDEBAR DESKTOP -->
+        <div id="desktopSidebar" class="hidden md:flex flex-col w-64 flex-shrink-0 bg-[#0c1220] text-gray-300 sidebar-column transition-all duration-300 shadow-xl border-r border-gray-800/60">
+
+            <!-- Logo -->
+            <div class="flex items-center justify-between px-6 py-5 border-b border-gray-800/60">
+                <a href="{% url 'main:home' %}" class="text-white flex items-center gap-2 hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-pen-nib text-indigo-400 text-xl"></i>
+                    <strong class="text-xl tracking-tight">Blog ✍️</strong>
+                </a>
+            </div>
+
+            <!-- Navegação -->
+            <nav class="flex-1 px-4 py-5 overflow-y-auto space-y-1">
+                {% if user.is_authenticated %}
+                <!-- Usuário info -->
+                <div class="px-3 py-3 mb-4 bg-white/5 rounded-xl border border-white/5">
+                    <p class="text-xs text-gray-500 mb-0.5">Conectado como</p>
+                    <p class="text-sm font-semibold text-white truncate flex items-center gap-1.5">
+                        <i class="fas fa-circle text-[8px] text-green-400"></i>
+                        {{ user.username }}
+                    </p>
+                </div>
+
+                <a class="nav-link" href="{% url 'main:post_create' %}">
+                    <span class="nav-icon"><i class="fas fa-feather-alt text-indigo-400"></i></span>
+                    <span class="font-medium text-indigo-300">Novo Post</span>
+                </a>
+
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-3 pb-1">Navegação</p>
+                <a class="nav-link" href="{% url 'main:home' %}">
+                    <span class="nav-icon"><i class="fas fa-newspaper"></i></span>
+                    <span>Feed / Início</span>
+                </a>
+                <a class="nav-link" href="{% url 'main:user_posts' %}">
+                    <span class="nav-icon"><i class="fas fa-layer-group"></i></span>
+                    <span>Meus Posts</span>
+                </a>
+                <a class="nav-link" href="{% url 'main:sobre' %}">
+                    <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
+                    <span>Sobre</span>
+                </a>
+                {% if user.is_staff or user.is_superuser %}
+                <a class="nav-link text-amber-300 hover:text-amber-200" href="{% url 'admin_panel:dashboard' %}">
+                    <span class="nav-icon"><i class="fas fa-shield-alt text-amber-400"></i></span>
+                    <span class="font-medium text-amber-300">Painel Admin</span>
+                </a>
+                {% endif %}
+                {% else %}
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-3 pb-1">Navegação</p>
+                <a class="nav-link" href="{% url 'main:home' %}">
+                    <span class="nav-icon"><i class="fas fa-newspaper"></i></span>
+                    <span>Feed / Início</span>
+                </a>
+                <a class="nav-link" href="{% url 'main:sobre' %}">
+                    <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
+                    <span>Sobre</span>
+                </a>
+
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-3 pt-4 pb-1">Acesso</p>
+                <a class="nav-link" href="{% url 'main:login' %}">
+                    <span class="nav-icon"><i class="fas fa-sign-in-alt text-indigo-400"></i></span>
+                    <span>Entrar</span>
+                </a>
+                <a class="nav-link" href="{% url 'main:create_account' %}">
+                    <span class="nav-icon"><i class="fas fa-user-plus text-emerald-400"></i></span>
+                    <span>Criar Conta</span>
+                </a>
+                {% endif %}
+            </nav>
+
+            <!-- Logout na parte inferior -->
+            {% if user.is_authenticated %}
+            <div class="px-4 py-4 border-t border-gray-800/60">
+                <form method="post" action="{% url 'main:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-red-900/20 hover:bg-red-900/40 text-red-400 hover:text-red-200 transition-colors text-sm">
+                        <span class="nav-icon"><i class="fas fa-sign-out-alt"></i></span>
+                        <span>Sair da Conta</span>
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div id="mainContent" class="flex-1 w-full bg-gray-50 dark:bg-gray-900 main-content-column transition-all duration-300 flex flex-col relative h-screen overflow-y-auto">
+
+            <!-- Topbar Desktop -->
+            <div class="hidden md:flex justify-between items-center px-6 py-3.5 bg-white dark:bg-gray-800/90 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-700/60 z-10 sticky top-0">
+                <div class="flex items-center gap-4">
+                    <button id="desktop-menu-toggle" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-colors" aria-label="Alternar menu lateral">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        {% block topbar_title %}Plataforma de Publicação{% endblock topbar_title %}
+                    </span>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    {% if user.is_authenticated %}
+                    {% if user.is_staff or user.is_superuser %}
+                    <a href="{% url 'admin_panel:dashboard' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 text-xs font-semibold shadow-sm transition-all">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Painel Admin</span>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'main:post_create' %}" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all">
+                        <i class="fas fa-plus"></i>
+                        <span>Novo Post</span>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'main:login' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-sign-in-alt"></i> Entrar
+                    </a>
+                    <a href="{% url 'main:create_account' %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-all">
+                        <i class="fas fa-user-plus"></i> Cadastrar
+                    </a>
+                    {% endif %}
+
+                    <!-- Botão de tema -->
+                    <button id="global-theme-toggle" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-xs font-medium">
+                        <i class="fas fa-moon dark:hidden"></i>
+                        <i class="fas fa-sun hidden dark:inline"></i>
+                        <span class="dark:hidden">Escuro</span>
+                        <span class="hidden dark:inline">Claro</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Botão flutuante de tema (mobile) -->
+            <button id="mobile-theme-toggle" class="md:hidden fixed bottom-6 right-6 w-12 h-12 rounded-full bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 shadow-xl z-40 flex items-center justify-center transition-transform hover:scale-110">
+                <i class="fas fa-moon fa-sm dark:hidden"></i>
+                <i class="fas fa-sun fa-sm hidden dark:inline"></i>
+            </button>
+
+            <!-- Mensagens flash do Django -->
+            {% if messages %}
+            <div class="px-6 pt-4">
+                <div class="max-w-4xl mx-auto space-y-2">
+                    {% for message in messages %}
+                    <div class="p-4 rounded-xl text-sm flex items-center justify-between shadow-sm {% if message.tags == 'error' %}bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-300{% elif message.tags == 'success' %}bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300{% else %}bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300{% endif %}">
+                        <div class="flex items-center gap-2">
+                            {% if message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle text-red-500"></i>
+                            {% elif message.tags == 'success' %}
+                                <i class="fas fa-check-circle text-emerald-500"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle text-blue-500"></i>
+                            {% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                        <button onclick="this.parentElement.remove()" class="opacity-70 hover:opacity-100 transition-opacity">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Conteúdo da página -->
+            <main class="flex-1 p-6 md:p-8">
+                <div class="max-w-5xl mx-auto">
+                    {% block content %}{% endblock content %}
+                </div>
+            </main>
+
+            <!-- Rodapé simples -->
+            <footer class="py-4 px-6 text-center text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-800">
+                Django Blog &bull; MVP &bull; {% now "Y" %}
+            </footer>
+        </div>
+    </div>
+
+    {% endblock body_wrapper %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Dark / Light Theme
+            const html = document.documentElement;
+            const themeToggles = [
+                document.getElementById('global-theme-toggle'),
+                document.getElementById('mobile-theme-toggle')
+            ];
+
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    html.classList.add('dark');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    html.classList.remove('dark');
+                    localStorage.setItem('theme', 'light');
+                }
+            };
+
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                applyTheme('dark');
+            } else {
+                applyTheme('light');
+            }
+
+            themeToggles.forEach(btn => {
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        applyTheme(html.classList.contains('dark') ? 'light' : 'dark');
+                    });
+                }
+            });
+
+            // Mobile Menu
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const hamburgerIcon = document.getElementById('hamburger-icon');
+
+            if (mobileMenuBtn && mobileMenu) {
+                mobileMenuBtn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const isOpen = mobileMenu.classList.contains('is-open');
+                    if (isOpen) {
+                        mobileMenu.classList.remove('is-open');
+                        hamburgerIcon.classList.remove('fa-times');
+                        hamburgerIcon.classList.add('fa-bars');
+                    } else {
+                        mobileMenu.classList.add('is-open');
+                        hamburgerIcon.classList.remove('fa-bars');
+                        hamburgerIcon.classList.add('fa-times');
+                    }
+                });
+
+                document.addEventListener("click", (e) => {
+                    if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                        mobileMenu.classList.remove('is-open');
+                        hamburgerIcon.classList.remove('fa-times');
+                        hamburgerIcon.classList.add('fa-bars');
+                    }
+                });
+            }
+
+            // Desktop Sidebar Toggle
+            const desktopToggle = document.getElementById("desktop-menu-toggle");
+            const desktopSidebar = document.getElementById("desktopSidebar");
+
+            if (desktopToggle && desktopSidebar) {
+                desktopToggle.addEventListener("click", () => {
+                    desktopSidebar.classList.toggle("sidebar-collapsed");
+                });
+            }
+        });
+    </script>
+    {% block extra_js %}{% endblock extra_js %}
+</body>
+</html>

@@ -1,0 +1,68 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}Comentário #{{ comment.pk }} - Painel Administrativo{% endblock title %}
+{% block header_title %}Detalhes do Comentário{% endblock header_title %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+    <!-- Ações Superiores -->
+    <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800">
+        <a href="{% url 'admin_panel:comment_list' %}" class="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+            <i class="fas fa-arrow-left"></i> Voltar à Lista
+        </a>
+
+        <a href="{% url 'admin_panel:comment_delete' pk=comment.pk %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors">
+            <i class="fas fa-trash"></i> Excluir Comentário
+        </a>
+    </div>
+
+    <!-- Card de Conteúdo do Comentário -->
+    <div class="bg-white dark:bg-gray-800/90 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 p-6 md:p-8 space-y-6 shadow-sm">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-gray-700/60">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-sm">
+                    {{ comment.author.username|first|upper }}
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-white">
+                        {{ comment.author.username }}
+                    </h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Publicado em {{ comment.created_at|date:"d/m/Y H:i" }}
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                {% if comment.is_active %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                    Ativo
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-500/20">
+                    Inativo
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Post Relacionado -->
+        <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-700/40 border border-gray-200 dark:border-gray-700 text-xs">
+            <span class="text-gray-500 dark:text-gray-400 font-medium">Post Relacionado:</span>
+            <a href="{% url 'admin_panel:post_detail' pk=comment.post.pk %}" class="ml-1.5 font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+                {{ comment.post.title }}
+            </a>
+        </div>
+
+        <!-- Conteúdo do Comentário -->
+        <div class="space-y-2">
+            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Conteúdo do Comentário</span>
+            <div class="p-4 rounded-xl bg-gray-50/50 dark:bg-gray-900/50 border border-gray-200/60 dark:border-gray-700/60 text-sm text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-line">
+                {{ comment.content }}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock content %}

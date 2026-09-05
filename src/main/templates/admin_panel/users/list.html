@@ -1,0 +1,127 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}Gerenciamento de Usuários - Painel Administrativo{% endblock title %}
+{% block header_title %}Usuários Cadastrados{% endblock header_title %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Cabeçalho da Seção -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+        <div>
+            <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                Gerenciamento de Usuários
+            </h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Visualize os usuários cadastrados, permissões e alterne o status ativo/inativo de forma segura.
+            </p>
+        </div>
+    </div>
+
+    <!-- Tabela de Usuários -->
+    {% if users %}
+    <div class="bg-white dark:bg-gray-800/90 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
+                        <th class="py-3.5 px-6">Usuário</th>
+                        <th class="py-3.5 px-6">E-mail</th>
+                        <th class="py-3.5 px-6">Data de Cadastro</th>
+                        <th class="py-3.5 px-6">Nível de Acesso</th>
+                        <th class="py-3.5 px-6">Status</th>
+                        <th class="py-3.5 px-6 text-center">Atividade</th>
+                        <th class="py-3.5 px-6 text-right">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700/60 text-sm">
+                    {% for u in users %}
+                    <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-700/30 transition-colors">
+                        <td class="py-4 px-6 whitespace-nowrap">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs">
+                                    {{ u.username|first|upper }}
+                                </div>
+                                <div>
+                                    <a href="{% url 'admin_panel:user_detail' pk=u.pk %}" class="font-bold text-xs text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                        {{ u.username }}
+                                    </a>
+                                    {% if u == request.user %}
+                                    <span class="ml-1.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">Você</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 whitespace-nowrap text-xs text-gray-600 dark:text-gray-300">
+                            {{ u.email|default:"<span class='text-gray-400 italic'>Não informado</span>" }}
+                        </td>
+                        <td class="py-4 px-6 whitespace-nowrap text-gray-500 dark:text-gray-400 text-xs">
+                            {{ u.date_joined|date:"d/m/Y H:i" }}
+                        </td>
+                        <td class="py-4 px-6 whitespace-nowrap">
+                            <div class="flex items-center gap-1.5">
+                                {% if u.is_superuser %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60">
+                                    Superuser
+                                </span>
+                                {% elif u.is_staff %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700/60">
+                                    Staff
+                                </span>
+                                {% else %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                                    Usuário Padrão
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 whitespace-nowrap">
+                            {% if u.is_active %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Ativo
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-500/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Inativo
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6 text-center whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+                            <span title="Posts">{{ u.posts_count }} posts</span> &bull;
+                            <span title="Comentários">{{ u.comments_count }} com.</span>
+                        </td>
+                        <td class="py-4 px-6 text-right whitespace-nowrap">
+                            <div class="inline-flex items-center gap-2">
+                                <a href="{% url 'admin_panel:user_detail' pk=u.pk %}" class="p-1.5 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors" title="Visualizar detalhes">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+
+                                {% if u != request.user %}
+                                <form method="post" action="{% url 'admin_panel:user_toggle_status' pk=u.pk %}" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                                    {% if u.is_active %}
+                                    <button type="submit" class="px-2.5 py-1 text-xs font-medium rounded-lg text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-amber-300 dark:border-amber-700/60 transition-colors" title="Desativar usuário">
+                                        Desativar
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" class="px-2.5 py-1 text-xs font-medium rounded-lg text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-300 dark:border-emerald-700/60 transition-colors" title="Ativar usuário">
+                                        Ativar
+                                    </button>
+                                    {% endif %}
+                                </form>
+                                {% else %}
+                                <span class="text-[11px] text-gray-400 italic">Sua conta</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock content %}

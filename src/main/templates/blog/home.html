@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Feed de Publicações - Blog{% endblock title %}
+{% block topbar_title %}Feed Principal{% endblock topbar_title %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header / Busca -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-200 dark:border-gray-800">
+        <div>
+            <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                Feed de Publicações
+            </h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Explore artigos, novidades e ideias compartilhadas pela comunidade.
+            </p>
+        </div>
+
+        <!-- Barra de Busca -->
+        <form method="get" action="{% url 'main:home' %}" class="flex items-center gap-2">
+            <div class="relative w-full md:w-64">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                    <i class="fas fa-search text-xs"></i>
+                </span>
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ query|default:'' }}"
+                    placeholder="Buscar postagens..."
+                    class="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+            </div>
+            {% if query %}
+            <a href="{% url 'main:home' %}" class="px-3 py-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" title="Limpar busca">
+                <i class="fas fa-times"></i>
+            </a>
+            {% endif %}
+            <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm">
+                Buscar
+            </button>
+        </form>
+    </div>
+
+    <!-- Lista / Grid de Posts -->
+    {% if posts %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for post in posts %}
+        <article class="flex flex-col bg-white dark:bg-gray-800/80 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 overflow-hidden shadow-sm hover:shadow-md hover:border-indigo-500/50 transition-all group">
+            {% if post.image %}
+            <div class="h-48 w-full overflow-hidden bg-gray-100 dark:bg-gray-900 relative">
+                <img
+                    src="{{ post.image.url }}"
+                    alt="{{ post.title }}"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                />
+            </div>
+            {% endif %}
+
+            <div class="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                    <!-- Meta info autor e data -->
+                    <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
+                        <span class="flex items-center gap-1.5 font-medium text-indigo-600 dark:text-indigo-400">
+                            <i class="fas fa-user-circle"></i>
+                            {{ post.author.username }}
+                        </span>
+                        <time datetime="{{ post.created_at|date:'c' }}" class="flex items-center gap-1">
+                            <i class="far fa-calendar-alt"></i>
+                            {{ post.created_at|date:"d M Y" }}
+                        </time>
+                    </div>
+
+                    <!-- Título -->
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2 mb-2">
+                        <a href="{{ post.get_absolute_url }}">
+                            {{ post.title }}
+                        </a>
+                    </h2>
+
+                    <!-- Prévia do conteúdo -->
+                    <p class="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed">
+                        {{ post.content|truncatewords:28 }}
+                    </p>
+                </div>
+
+                <!-- Footer do Card -->
+                <div class="pt-5 mt-4 border-t border-gray-100 dark:border-gray-700/50 flex items-center justify-between text-xs">
+                    <span class="text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                        <i class="far fa-comment"></i>
+                        {{ post.comments.count }} comentário{{ post.comments.count|pluralize }}
+                    </span>
+
+                    <a href="{{ post.get_absolute_url }}" class="inline-flex items-center gap-1 font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 group-hover:translate-x-0.5 transition-all">
+                        Ler postagem <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Estado vazio -->
+    <div class="text-center py-16 px-4 bg-white dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-2xl">
+            <i class="fas fa-pen-fancy"></i>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+            {% if query %}
+                Nenhum post encontrado para "{{ query }}"
+            {% else %}
+                Nenhuma publicação disponível ainda
+            {% endif %}
+        </h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto mt-1 mb-6">
+            {% if query %}
+                Tente buscar por termos diferentes ou volte para o feed principal.
+            {% else %}
+                Seja a primeira pessoa a compartilhar um conteúdo interessante nesta plataforma!
+            {% endif %}
+        </p>
+        {% if query %}
+        <a href="{% url 'main:home' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-sm font-medium transition-colors">
+            <i class="fas fa-arrow-left"></i> Voltar ao Feed
+        </a>
+        {% elif user.is_authenticated %}
+        <a href="{% url 'main:post_create' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow transition-all">
+            <i class="fas fa-plus"></i> Criar Primeira Publicação
+        </a>
+        {% else %}
+        <a href="{% url 'main:login' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow transition-all">
+            <i class="fas fa-sign-in-alt"></i> Entrar para Publicar
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}

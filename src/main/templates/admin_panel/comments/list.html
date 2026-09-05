@@ -1,0 +1,118 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}Gerenciamento de Comentários - Painel Administrativo{% endblock title %}
+{% block header_title %}Comentários do Blog{% endblock header_title %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Cabeçalho da Seção -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+        <div>
+            <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white tracking-tight">
+                Gerenciamento de Comentários
+            </h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Monitore, visualize detalhes e exclua comentários indesejados.
+            </p>
+        </div>
+    </div>
+
+    <!-- Barra de Filtros -->
+    <div class="bg-white dark:bg-gray-800/90 p-4 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 shadow-sm">
+        <form method="get" class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center gap-2">
+                <label for="filter-status" class="text-xs font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">
+                    Status de Moderação:
+                </label>
+                <select name="status" id="filter-status" class="text-xs rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none" onchange="this.form.submit()">
+                    <option value="" {% if not selected_status %}selected{% endif %}>Todos os Comentários</option>
+                    <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Apenas Ativos</option>
+                    <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Apenas Inativos</option>
+                </select>
+            </div>
+
+            {% if selected_status %}
+            <a href="{% url 'admin_panel:comment_list' %}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium ml-auto">
+                <i class="fas fa-times"></i> Limpar Filtro
+            </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Tabela de Comentários -->
+    {% if comments %}
+    <div class="bg-white dark:bg-gray-800/90 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-xs uppercase font-bold text-gray-500 dark:text-gray-400 tracking-wider">
+                        <th class="py-3.5 px-6">Autor</th>
+                        <th class="py-3.5 px-6">Post Relacionado</th>
+                        <th class="py-3.5 px-6">Conteúdo</th>
+                        <th class="py-3.5 px-6">Data</th>
+                        <th class="py-3.5 px-6">Status</th>
+                        <th class="py-3.5 px-6 text-right">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700/60 text-sm">
+                    {% for comment in comments %}
+                    <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-700/30 transition-colors">
+                        <td class="py-4 px-6 whitespace-nowrap text-xs font-semibold text-gray-900 dark:text-white">
+                            <i class="far fa-user text-[10px] text-gray-400 mr-1"></i>
+                            {{ comment.author.username }}
+                        </td>
+                        <td class="py-4 px-6 max-w-xs">
+                            <a href="{% url 'admin_panel:post_detail' pk=comment.post.pk %}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline line-clamp-1 font-medium">
+                                {{ comment.post.title }}
+                            </a>
+                        </td>
+                        <td class="py-4 px-6 text-xs text-gray-700 dark:text-gray-300 max-w-md">
+                            <span class="line-clamp-2">{{ comment.content }}</span>
+                        </td>
+                        <td class="py-4 px-6 whitespace-nowrap text-gray-500 dark:text-gray-400 text-xs">
+                            {{ comment.created_at|date:"d/m/Y H:i" }}
+                        </td>
+                        <td class="py-4 px-6 whitespace-nowrap">
+                            {% if comment.is_active %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Ativo
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-500/20">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Inativo
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6 text-right whitespace-nowrap">
+                            <div class="inline-flex items-center gap-1.5">
+                                <a href="{% url 'admin_panel:comment_detail' pk=comment.pk %}" class="p-1.5 text-xs text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors" title="Visualizar comentário">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'admin_panel:comment_delete' pk=comment.pk %}" class="p-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors" title="Excluir comentário">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-16 px-4 bg-white dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700">
+        <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xl">
+            <i class="fas fa-comments"></i>
+        </div>
+        <h3 class="text-base font-bold text-gray-900 dark:text-white">
+            Nenhum comentário encontrado
+        </h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 max-w-xs mx-auto mt-1">
+            Não há comentários para exibir no momento.
+        </p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock content %}

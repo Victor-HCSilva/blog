@@ -1,0 +1,142 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}{{ post.title }} - Detalhes do Post{% endblock title %}
+{% block header_title %}Detalhes da Publicação{% endblock header_title %}
+
+{% block content %}
+<div class="space-y-6 max-w-4xl mx-auto">
+
+    <!-- Barra de Ações Superior -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+        <div class="flex items-center gap-3">
+            <a href="{% url 'admin_panel:post_list' %}" class="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+                <i class="fas fa-arrow-left"></i> Voltar à Lista
+            </a>
+            <span class="text-gray-300 dark:text-gray-700">|</span>
+            {% if post.is_published %}
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Publicado
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Rascunho
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="flex items-center gap-2">
+            <!-- Botão Publicar / Despublicar -->
+            {% if post.is_published %}
+            <form method="post" action="{% url 'admin_panel:post_unpublish' pk=post.pk %}" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-100 transition-colors">
+                    <i class="fas fa-eye-slash"></i> Despublicar
+                </button>
+            </form>
+            {% else %}
+            <form method="post" action="{% url 'admin_panel:post_publish' pk=post.pk %}" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 hover:bg-emerald-100 transition-colors">
+                    <i class="fas fa-check"></i> Publicar
+                </button>
+            </form>
+            {% endif %}
+
+            <!-- Editar -->
+            <a href="{% url 'admin_panel:post_edit' pk=post.pk %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-colors">
+                <i class="fas fa-edit"></i> Editar
+            </a>
+
+            <!-- Excluir -->
+            <a href="{% url 'admin_panel:post_delete' pk=post.pk %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-700 text-white shadow-sm transition-colors">
+                <i class="fas fa-trash"></i> Excluir
+            </a>
+        </div>
+    </div>
+
+    <!-- Card de Conteúdo do Post -->
+    <article class="bg-white dark:bg-gray-800/90 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 p-6 md:p-8 space-y-6 shadow-sm">
+        <header class="space-y-3 pb-4 border-b border-gray-100 dark:border-gray-700/60">
+            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">
+                {{ post.title }}
+            </h1>
+
+            <div class="flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                <span class="flex items-center gap-1.5">
+                    <i class="far fa-user text-indigo-500"></i>
+                    <strong>Autor:</strong> {{ post.author.username }}
+                </span>
+                <span>&bull;</span>
+                <span class="flex items-center gap-1.5">
+                    <i class="far fa-calendar-alt text-indigo-500"></i>
+                    <strong>Criado:</strong> {{ post.created_at|date:"d/m/Y H:i" }}
+                </span>
+                <span>&bull;</span>
+                <span class="flex items-center gap-1.5">
+                    <i class="fas fa-sync-alt text-indigo-500"></i>
+                    <strong>Atualizado:</strong> {{ post.updated_at|date:"d/m/Y H:i" }}
+                </span>
+                <span>&bull;</span>
+                <span class="flex items-center gap-1.5">
+                    <i class="fas fa-link text-indigo-500"></i>
+                    <strong>Slug:</strong> <code class="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 font-mono text-[11px]">{{ post.slug }}</code>
+                </span>
+            </div>
+        </header>
+
+        {% if post.image %}
+        <div class="rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 max-h-96">
+            <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-full object-cover" />
+        </div>
+        {% endif %}
+
+        <div class="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200 text-sm leading-relaxed whitespace-pre-line">
+            {{ post.content }}
+        </div>
+    </article>
+
+    <!-- Comentários Associados -->
+    <section class="bg-white dark:bg-gray-800/90 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 p-6 md:p-8 space-y-6 shadow-sm">
+        <div class="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700/60">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-comments text-indigo-500"></i>
+                <h3 class="font-bold text-gray-900 dark:text-white text-base">
+                    Comentários vinculados ({{ comments.count }})
+                </h3>
+            </div>
+        </div>
+
+        {% if comments %}
+        <div class="space-y-4">
+            {% for c in comments %}
+            <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/30 border border-gray-200/60 dark:border-gray-700/50 flex items-start justify-between gap-4">
+                <div class="space-y-1 text-xs">
+                    <div class="flex items-center gap-2">
+                        <strong class="text-gray-900 dark:text-white">{{ c.author.username }}</strong>
+                        <span class="text-gray-400">&bull; {{ c.created_at|date:"d/m/Y H:i" }}</span>
+                        {% if c.is_active %}
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">Ativo</span>
+                        {% else %}
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300">Inativo</span>
+                        {% endif %}
+                    </div>
+                    <p class="text-gray-700 dark:text-gray-300 text-sm">
+                        {{ c.content }}
+                    </p>
+                </div>
+
+                <a href="{% url 'admin_panel:comment_delete' pk=c.pk %}" class="text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 px-2 py-1 rounded transition-colors flex items-center gap-1" title="Excluir Comentário">
+                    <i class="fas fa-trash"></i> Excluir
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-xs text-gray-500 dark:text-gray-400 text-center py-4">Nenhum comentário associado a este post.</p>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock content %}

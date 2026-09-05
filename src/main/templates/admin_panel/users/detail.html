@@ -1,0 +1,132 @@
+{% extends "admin_panel/base.html" %}
+
+{% block title %}Usuário: {{ target_user.username }} - Painel Administrativo{% endblock title %}
+{% block header_title %}Perfil do Usuário{% endblock header_title %}
+
+{% block content %}
+<div class="space-y-6 max-w-4xl mx-auto">
+
+    <!-- Ações Superiores -->
+    <div class="flex items-center justify-between pb-4 border-b border-gray-200 dark:border-gray-800">
+        <a href="{% url 'admin_panel:user_list' %}" class="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+            <i class="fas fa-arrow-left"></i> Voltar à Lista de Usuários
+        </a>
+
+        {% if target_user != request.user %}
+        <form method="post" action="{% url 'admin_panel:user_toggle_status' pk=target_user.pk %}" class="inline">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+            {% if target_user.is_active %}
+            <button type="submit" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 border border-amber-300 dark:border-amber-700/60 transition-colors">
+                Desativar Usuário
+            </button>
+            {% else %}
+            <button type="submit" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 border border-emerald-300 dark:border-emerald-700/60 transition-colors">
+                Ativar Usuário
+            </button>
+            {% endif %}
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Card de Perfil -->
+    <div class="bg-white dark:bg-gray-800/90 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 p-6 md:p-8 space-y-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100 dark:border-gray-700/60">
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-extrabold text-2xl shadow-lg shadow-indigo-600/30">
+                    {{ target_user.username|first|upper }}
+                </div>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        {{ target_user.username }}
+                        {% if target_user == request.user %}
+                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">Você</span>
+                        {% endif %}
+                    </h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {{ target_user.email|default:"Sem e-mail cadastrado" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                {% if target_user.is_superuser %}
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60">
+                    Superuser
+                </span>
+                {% elif target_user.is_staff %}
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-800 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700/60">
+                    Staff
+                </span>
+                {% else %}
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                    Usuário Padrão
+                </span>
+                {% endif %}
+
+                {% if target_user.is_active %}
+                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60">
+                    Ativo
+                </span>
+                {% else %}
+                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border border-red-300 dark:border-red-700/60">
+                    Inativo
+                </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Metadados -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-700/40 border border-gray-200/60 dark:border-gray-700/60">
+                <span class="text-gray-400 uppercase tracking-wider font-semibold block text-[10px]">Data de Cadastro</span>
+                <span class="font-bold text-gray-900 dark:text-white mt-1 block text-sm">{{ target_user.date_joined|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-700/40 border border-gray-200/60 dark:border-gray-700/60">
+                <span class="text-gray-400 uppercase tracking-wider font-semibold block text-[10px]">Total de Posts</span>
+                <span class="font-bold text-gray-900 dark:text-white mt-1 block text-sm">{{ target_user.posts_count }} publicações</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-700/40 border border-gray-200/60 dark:border-gray-700/60">
+                <span class="text-gray-400 uppercase tracking-wider font-semibold block text-[10px]">Total de Comentários</span>
+                <span class="font-bold text-gray-900 dark:text-white mt-1 block text-sm">{{ target_user.comments_count }} comentários</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Posts do Usuário -->
+    <div class="bg-white dark:bg-gray-800/90 rounded-2xl border border-gray-200/80 dark:border-gray-700/60 p-6 md:p-8 space-y-4 shadow-sm">
+        <h3 class="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
+            <i class="fas fa-file-alt text-indigo-500"></i>
+            Publicações do Usuário
+        </h3>
+
+        {% if user_posts %}
+        <div class="divide-y divide-gray-100 dark:divide-gray-700/60 text-xs">
+            {% for p in user_posts %}
+            <div class="py-3 flex items-center justify-between gap-4">
+                <div>
+                    <a href="{% url 'admin_panel:post_detail' pk=p.pk %}" class="font-semibold text-gray-900 dark:text-white hover:underline text-sm">
+                        {{ p.title }}
+                    </a>
+                    <p class="text-gray-400 mt-0.5">{{ p.created_at|date:"d/m/Y H:i" }}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    {% if p.is_published %}
+                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">Publicado</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">Rascunho</span>
+                    {% endif %}
+                    <a href="{% url 'admin_panel:post_detail' pk=p.pk %}" class="p-1 text-gray-400 hover:text-indigo-600">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-xs text-gray-500 dark:text-gray-400 py-3 text-center">Nenhum post criado por este usuário.</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock content %}
