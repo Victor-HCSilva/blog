@@ -76,5 +76,6 @@ local_settings.py
 .Trashes
 ehthumbs.db
 Thumbs.db
-
+*.sqlite3
 media
+staticfiles
