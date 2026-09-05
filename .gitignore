@@ -76,3 +76,5 @@ local_settings.py
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+media
