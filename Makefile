@@ -42,7 +42,7 @@ activate:
 
 dev:
 	source .venv/bin/activate
-	python3 src/manage.py runserver
+	docker compose -f .docker/docker-compose.yml up
 
 # Instala as dependências
 install: venv
