@@ -1,0 +1,47 @@
+# .docker/docker-compose.yml
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: hw_postgres
+    restart: always
+    env_file:
+      - ../.envs/.env
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hw_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  api:
+    container_name: hw_api
+    build:
+      context: ../            # O contexto de build é a raiz do projeto
+      dockerfile: .docker/Dockerfile
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../.envs/.env         # Carrega as mesmas variáveis
+    volumes:
+      - ../:/app              # Sincroniza o código local com o contêiner (Live Reloading)
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - hw_network
+    # Habilitamos o --reload para o ambiente de desenvolvimento local
+    command: uvicorn main:app --app-dir src --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  postgres_data:
+
+networks:
+  hw_network:
+    driver: bridge
